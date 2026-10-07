@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-10-07T16:33:38.211207+00:00",
+  "turno": 2,
+  "source_bu": "https://cdn.tse.jus.br/estatistica/sead/eleicoes/eleicoes2024/buweb/bweb_2t_ES_281020241046.zip",
+  "municipios": [
+    {
+      "cd": "56995",
+      "m": "SERRA",
+      "secoes": 1042,
+      "bytes": 170942
+    }
+  ]
+}

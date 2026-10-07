@@ -1,0 +1,475 @@
+{
+  "generated_at": "2026-10-07T16:33:36.042197+00:00",
+  "turno": 1,
+  "source_bu": "https://cdn.tse.jus.br/estatistica/sead/eleicoes/eleicoes2024/buweb/bweb_1t_ES_091020241636.zip",
+  "municipios": [
+    {
+      "cd": "56006",
+      "m": "SÃO DOMINGOS DO NORTE",
+      "secoes": 29,
+      "bytes": 14662
+    },
+    {
+      "cd": "56014",
+      "m": "AFONSO CLÁUDIO",
+      "secoes": 79,
+      "bytes": 49015
+    },
+    {
+      "cd": "56022",
+      "m": "ÁGUA DOCE DO NORTE",
+      "secoes": 45,
+      "bytes": 18650
+    },
+    {
+      "cd": "56030",
+      "m": "ALEGRE",
+      "secoes": 91,
+      "bytes": 42732
+    },
+    {
+      "cd": "56049",
+      "m": "IRUPI",
+      "secoes": 36,
+      "bytes": 19556
+    },
+    {
+      "cd": "56057",
+      "m": "ALFREDO CHAVES",
+      "secoes": 42,
+      "bytes": 20608
+    },
+    {
+      "cd": "56065",
+      "m": "ALTO RIO NOVO",
+      "secoes": 24,
+      "bytes": 11281
+    },
+    {
+      "cd": "56073",
+      "m": "ANCHIETA",
+      "secoes": 94,
+      "bytes": 46729
+    },
+    {
+      "cd": "56081",
+      "m": "VILA PAVÃO",
+      "secoes": 28,
+      "bytes": 16764
+    },
+    {
+      "cd": "56090",
+      "m": "APIACÁ",
+      "secoes": 25,
+      "bytes": 11737
+    },
+    {
+      "cd": "56103",
+      "m": "MARECHAL FLORIANO",
+      "secoes": 46,
+      "bytes": 30999
+    },
+    {
+      "cd": "56111",
+      "m": "ARACRUZ",
+      "secoes": 229,
+      "bytes": 165461
+    },
+    {
+      "cd": "56120",
+      "m": "MARATAÍZES",
+      "secoes": 112,
+      "bytes": 73556
+    },
+    {
+      "cd": "56138",
+      "m": "ATÍLIO VIVÁCQUA",
+      "secoes": 28,
+      "bytes": 16606
+    },
+    {
+      "cd": "56146",
+      "m": "BREJETUBA",
+      "secoes": 34,
+      "bytes": 22102
+    },
+    {
+      "cd": "56154",
+      "m": "BAIXO GUANDU",
+      "secoes": 89,
+      "bytes": 64332
+    },
+    {
+      "cd": "56162",
+      "m": "SÃO ROQUE DO CANAÃ",
+      "secoes": 33,
+      "bytes": 14961
+    },
+    {
+      "cd": "56170",
+      "m": "BARRA DE SÃO FRANCISCO",
+      "secoes": 110,
+      "bytes": 64035
+    },
+    {
+      "cd": "56189",
+      "m": "SOORETAMA",
+      "secoes": 63,
+      "bytes": 38858
+    },
+    {
+      "cd": "56197",
+      "m": "BOA ESPERANÇA",
+      "secoes": 39,
+      "bytes": 22036
+    },
+    {
+      "cd": "56200",
+      "m": "PONTO BELO",
+      "secoes": 22,
+      "bytes": 11416
+    },
+    {
+      "cd": "56219",
+      "m": "BOM JESUS DO NORTE",
+      "secoes": 32,
+      "bytes": 17487
+    },
+    {
+      "cd": "56227",
+      "m": "VILA VALÉRIO",
+      "secoes": 44,
+      "bytes": 25909
+    },
+    {
+      "cd": "56235",
+      "m": "CACHOEIRO DE ITAPEMIRIM",
+      "secoes": 454,
+      "bytes": 395504
+    },
+    {
+      "cd": "56251",
+      "m": "CARIACICA",
+      "secoes": 826,
+      "bytes": 569785
+    },
+    {
+      "cd": "56278",
+      "m": "CASTELO",
+      "secoes": 136,
+      "bytes": 75320
+    },
+    {
+      "cd": "56294",
+      "m": "COLATINA",
+      "secoes": 310,
+      "bytes": 245344
+    },
+    {
+      "cd": "56308",
+      "m": "GOVERNADOR LINDENBERG",
+      "secoes": 29,
+      "bytes": 11150
+    },
+    {
+      "cd": "56316",
+      "m": "CONCEIÇÃO DA BARRA",
+      "secoes": 76,
+      "bytes": 50874
+    },
+    {
+      "cd": "56332",
+      "m": "CONCEIÇÃO DO CASTELO",
+      "secoes": 34,
+      "bytes": 18272
+    },
+    {
+      "cd": "56359",
+      "m": "DIVINO DE SÃO LOURENÇO",
+      "secoes": 15,
+      "bytes": 7761
+    },
+    {
+      "cd": "56375",
+      "m": "DOMINGOS MARTINS",
+      "secoes": 94,
+      "bytes": 48882
+    },
+    {
+      "cd": "56391",
+      "m": "DORES DO RIO PRETO",
+      "secoes": 25,
+      "bytes": 9097
+    },
+    {
+      "cd": "56413",
+      "m": "ECOPORANGA",
+      "secoes": 70,
+      "bytes": 41228
+    },
+    {
+      "cd": "56430",
+      "m": "FUNDÃO",
+      "secoes": 49,
+      "bytes": 26405
+    },
+    {
+      "cd": "56456",
+      "m": "GUAÇUÍ",
+      "secoes": 72,
+      "bytes": 47816
+    },
+    {
+      "cd": "56472",
+      "m": "GUARAPARI",
+      "secoes": 303,
+      "bytes": 250033
+    },
+    {
+      "cd": "56499",
+      "m": "IBIRAÇU",
+      "secoes": 38,
+      "bytes": 21058
+    },
+    {
+      "cd": "56502",
+      "m": "IBITIRAMA",
+      "secoes": 28,
+      "bytes": 13213
+    },
+    {
+      "cd": "56510",
+      "m": "ICONHA",
+      "secoes": 41,
+      "bytes": 20084
+    },
+    {
+      "cd": "56537",
+      "m": "ITAGUAÇU",
+      "secoes": 39,
+      "bytes": 21775
+    },
+    {
+      "cd": "56553",
+      "m": "ITAPEMIRIM",
+      "secoes": 128,
+      "bytes": 76980
+    },
+    {
+      "cd": "56570",
+      "m": "ITARANA",
+      "secoes": 32,
+      "bytes": 14093
+    },
+    {
+      "cd": "56596",
+      "m": "IÚNA",
+      "secoes": 74,
+      "bytes": 43207
+    },
+    {
+      "cd": "56618",
+      "m": "JERÔNIMO MONTEIRO",
+      "secoes": 34,
+      "bytes": 18944
+    },
+    {
+      "cd": "56626",
+      "m": "JOÃO NEIVA",
+      "secoes": 47,
+      "bytes": 28353
+    },
+    {
+      "cd": "56634",
+      "m": "LINHARES",
+      "secoes": 359,
+      "bytes": 290050
+    },
+    {
+      "cd": "56650",
+      "m": "MANTENÓPOLIS",
+      "secoes": 34,
+      "bytes": 16220
+    },
+    {
+      "cd": "56677",
+      "m": "MIMOSO DO SUL",
+      "secoes": 71,
+      "bytes": 36332
+    },
+    {
+      "cd": "56693",
+      "m": "MONTANHA",
+      "secoes": 49,
+      "bytes": 31139
+    },
+    {
+      "cd": "56715",
+      "m": "MUCURICI",
+      "secoes": 19,
+      "bytes": 7979
+    },
+    {
+      "cd": "56731",
+      "m": "MUNIZ FREIRE",
+      "secoes": 57,
+      "bytes": 28726
+    },
+    {
+      "cd": "56758",
+      "m": "MUQUI",
+      "secoes": 38,
+      "bytes": 25303
+    },
+    {
+      "cd": "56774",
+      "m": "NOVA VENÉCIA",
+      "secoes": 143,
+      "bytes": 100105
+    },
+    {
+      "cd": "56790",
+      "m": "PANCAS",
+      "secoes": 51,
+      "bytes": 31282
+    },
+    {
+      "cd": "56812",
+      "m": "PINHEIROS",
+      "secoes": 69,
+      "bytes": 42535
+    },
+    {
+      "cd": "56839",
+      "m": "PIÚMA",
+      "secoes": 68,
+      "bytes": 37943
+    },
+    {
+      "cd": "56855",
+      "m": "PRESIDENTE KENNEDY",
+      "secoes": 49,
+      "bytes": 23435
+    },
+    {
+      "cd": "56871",
+      "m": "RIO NOVO DO SUL",
+      "secoes": 33,
+      "bytes": 14445
+    },
+    {
+      "cd": "56898",
+      "m": "SANTA LEOPOLDINA",
+      "secoes": 38,
+      "bytes": 16665
+    },
+    {
+      "cd": "56910",
+      "m": "SANTA TERESA",
+      "secoes": 64,
+      "bytes": 40280
+    },
+    {
+      "cd": "56936",
+      "m": "SÃO GABRIEL DA PALHA",
+      "secoes": 83,
+      "bytes": 69147
+    },
+    {
+      "cd": "56952",
+      "m": "SÃO JOSÉ DO CALÇADO",
+      "secoes": 36,
+      "bytes": 19699
+    },
+    {
+      "cd": "56979",
+      "m": "SÃO MATEUS",
+      "secoes": 280,
+      "bytes": 224085
+    },
+    {
+      "cd": "56995",
+      "m": "SERRA",
+      "secoes": 1042,
+      "bytes": 848961
+    },
+    {
+      "cd": "57010",
+      "m": "VIANA",
+      "secoes": 171,
+      "bytes": 86205
+    },
+    {
+      "cd": "57037",
+      "m": "VILA VELHA",
+      "secoes": 1105,
+      "bytes": 965443
+    },
+    {
+      "cd": "57053",
+      "m": "VITÓRIA",
+      "secoes": 784,
+      "bytes": 626298
+    },
+    {
+      "cd": "57070",
+      "m": "MARILÂNDIA",
+      "secoes": 38,
+      "bytes": 18056
+    },
+    {
+      "cd": "57096",
+      "m": "IBATIBA",
+      "secoes": 65,
+      "bytes": 36464
+    },
+    {
+      "cd": "57118",
+      "m": "RIO BANANAL",
+      "secoes": 51,
+      "bytes": 24698
+    },
+    {
+      "cd": "57134",
+      "m": "JAGUARÉ",
+      "secoes": 70,
+      "bytes": 43780
+    },
+    {
+      "cd": "57150",
+      "m": "PEDRO CANÁRIO",
+      "secoes": 63,
+      "bytes": 34720
+    },
+    {
+      "cd": "57916",
+      "m": "LARANJA DA TERRA",
+      "secoes": 32,
+      "bytes": 16355
+    },
+    {
+      "cd": "57932",
+      "m": "SANTA MARIA DE JETIBÁ",
+      "secoes": 88,
+      "bytes": 54753
+    },
+    {
+      "cd": "57959",
+      "m": "VARGEM ALTA",
+      "secoes": 52,
+      "bytes": 27292
+    },
+    {
+      "cd": "57975",
+      "m": "VENDA NOVA DO IMIGRANTE",
+      "secoes": 56,
+      "bytes": 35684
+    },
+    {
+      "cd": "57991",
+      "m": "ÁGUIA BRANCA",
+      "secoes": 32,
+      "bytes": 14198
+    }
+  ]
+}
