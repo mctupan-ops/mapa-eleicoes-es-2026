@@ -1,0 +1,34 @@
+name: Gerar dados por bairro e seção
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/build_section_data.py'
+      - '.github/workflows/build-section-data.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Baixar TSE e gerar JSON por município
+        run: python scripts/build_section_data.py
+      - name: Publicar dados gerados
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/secoes
+          if git diff --cached --quiet; then
+            echo "Sem alterações"
+          else
+            git commit -m "Atualiza votação 2026 por bairro e seção"
+            git push
+          fi
