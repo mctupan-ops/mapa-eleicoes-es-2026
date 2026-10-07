@@ -1,0 +1,48 @@
+@media (max-width:850px){
+  html,body{height:100%;}
+  .secback.show{
+    display:block!important;
+    position:fixed!important;
+    inset:0!important;
+    width:100%!important;
+    height:100vh!important;
+    height:100dvh!important;
+    max-height:100dvh!important;
+    overflow:hidden!important;
+    padding:0!important;
+  }
+  .secpanel{
+    width:100%!important;
+    height:100vh!important;
+    height:100dvh!important;
+    max-height:100dvh!important;
+    min-height:0!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
+    border-radius:0!important;
+  }
+  .sechead,.seccontrols,.secnotice{
+    flex:0 0 auto!important;
+  }
+  .secbody{
+    flex:1 1 0!important;
+    min-height:0!important;
+    height:auto!important;
+    overflow-y:scroll!important;
+    overflow-x:hidden!important;
+    -webkit-overflow-scrolling:touch!important;
+    touch-action:pan-y!important;
+    overscroll-behavior:contain!important;
+    position:relative!important;
+    padding-bottom:28px!important;
+  }
+  .secrow,.secbairro{
+    touch-action:pan-y!important;
+  }
+}
+@supports not (height:100dvh){
+  @media (max-width:850px){
+    .secback.show,.secpanel{height:-webkit-fill-available!important;max-height:-webkit-fill-available!important;}
+  }
+}
