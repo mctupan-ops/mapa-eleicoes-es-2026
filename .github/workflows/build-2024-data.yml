@@ -1,0 +1,41 @@
+name: Build 2024 municipal section data
+
+on:
+  push:
+    paths:
+      - 'scripts/build_2024_data.py'
+      - '.github/workflows/build-2024-data.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build data
+        run: python scripts/build_2024_data.py
+
+      - name: Commit generated files
+        run: |
+          git config user.name "mctupan-ops"
+          git config user.email "mctupan@gmail.com"
+          git add data/2024/secoes
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Gera dados de Prefeito e Vereador 2024 por seção"
+            git push
+          fi
