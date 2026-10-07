@@ -19,21 +19,25 @@
     const sel=$id('secCandSelect'),q=$id('secCandSearch');
     if(!sel||typeof cands==='undefined')return;
     const arr=list(q?.value||'');
-    sel.innerHTML=arr.length?arr.map(c=>`<option value="${esc(c.number)}">${esc(label(c))}</option>`).join(''):'<option value="">Nenhum candidato encontrado</option>';
-    if(typeof current!=='undefined'&&current&&arr.some(c=>String(c.number)===String(current.number)))sel.value=String(current.number);
+    const selectedValue=typeof current!=='undefined'&&current?String(current.number):'';
+    const html=arr.length?arr.map(c=>`<option value="${esc(c.number)}">${esc(label(c))}</option>`).join(''):'<option value="">Nenhum candidato encontrado</option>';
+    if(sel.innerHTML!==html)sel.innerHTML=html;
+    if(selectedValue&&arr.some(c=>String(c.number)===selectedValue))sel.value=selectedValue;
   }
 
   function reopenForCurrentMunicipality(){
     const k=typeof selected!=='undefined'?selected:'';
     if(!k)return;
     setTimeout(()=>{
-      const btn=document.querySelector(`.secopen[data-k="${CSS.escape(k)}"]`) || document.querySelector('.secopen');
+      const safe=window.CSS&&CSS.escape?CSS.escape(k):k.replace(/"/g,'\\"');
+      const btn=document.querySelector(`.secopen[data-k="${safe}"]`) || document.querySelector('.secopen');
       if(btn)btn.click();
-    },0);
+    },20);
   }
 
   function changeCandidate(n){
     if(!n||typeof setCandidate!=='function')return;
+    if(typeof current!=='undefined'&&current&&String(current.number)===String(n))return;
     const mainSel=$id('cand');
     if(mainSel)mainSel.value=String(n);
     setCandidate(String(n));
@@ -60,12 +64,15 @@
 `;
   document.head.appendChild(style);
 
-  const obs=new MutationObserver(()=>{
-    if($id('secBack')?.classList.contains('show')){
-      install();
-      populate();
-    }
-  });
-  obs.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
   install();
+  const back=$id('secBack');
+  if(back){
+    const obs=new MutationObserver(()=>{
+      if(back.classList.contains('show')){
+        install();
+        populate();
+      }
+    });
+    obs.observe(back,{attributes:true,attributeFilter:['class']});
+  }
 })();
