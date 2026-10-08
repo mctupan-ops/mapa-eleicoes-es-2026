@@ -1,255 +1,28 @@
 'use strict';
 (() => {
-  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const fnum = n => Number(n || 0).toLocaleString('pt-BR');
-  const fpct = n => Number(n || 0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) + '%';
-  const yearNow = () => String(window.APP_ELECTION_YEAR || (new URL(location.href).searchParams.get('eleicao') === '2024' ? '2024' : '2026'));
-  let cmpSectionCache = new Map();
-  let cmpLevel = 'municipios';
-  let cmpSearch = '';
-
-  function currentMunicipio(){
-    if(typeof selected === 'undefined' || !selected) return null;
-    return (typeof MUNICIPIOS !== 'undefined' ? MUNICIPIOS : []).find(m => m.norm === selected) || null;
-  }
-  function candidateKey(n){
-    const s = String(n ?? '').replace(/\D/g,'');
-    return s ? String(Number(s)) : '';
-  }
-  function pairMap(arr){
-    const m = new Map();
-    for(const p of arr || []) if(Array.isArray(p) && p.length > 1) m.set(Number(p[0]), Number(p[1] || 0));
-    return m;
-  }
-  function candidates(){ return Array.isArray(cands) ? cands : []; }
-  function cLabel(c){ return `${c?.urna || c?.official || 'Sem nome'} · Nº ${c?.number || ''}${c?.party ? ' · '+c.party : ''}`; }
-
-  function installLauncher(){
-    const panel = document.querySelector('.panel');
-    if(!panel || document.getElementById('analysisTools')) return;
-    const box = document.createElement('div');
-    box.className = 'card';
-    box.id = 'analysisTools';
-    box.innerHTML = `
-      <div class="label">Inteligência eleitoral</div>
-      <button class="btn toolbtn" id="openCompare">Comparar candidatos</button>
-      <a class="btn toolbtn secondary" href="historico.html">Histórico 2012–2026 · Brasil</a>`;
-    const det = document.getElementById('det');
-    if(det) panel.insertBefore(box, det);
-    else panel.appendChild(box);
-    document.getElementById('openCompare').onclick = openCompare;
-  }
-
-  function installUI(){
-    if(document.getElementById('cmpBack')) return;
-    const st = document.createElement('style');
-    st.id = 'analysisToolsStyles';
-    st.textContent = `
-.toolbtn{display:flex!important;align-items:center;justify-content:center;text-decoration:none;background:#062b22!important;color:#fff!important;border-color:#062b22!important;margin-top:7px!important}.toolbtn.secondary{background:#fff2eb!important;color:#d9470a!important;border-color:#ffd8c7!important}
-.cmpback{display:none;position:fixed;inset:0;z-index:390;background:rgba(3,24,19,.72);padding:2vh 2vw;align-items:center;justify-content:center}.cmpback.show{display:flex}.cmppanel{width:min(1260px,97vw);height:min(94vh,920px);background:#fff;border-radius:20px;box-shadow:0 22px 70px #0006;display:flex;flex-direction:column;overflow:hidden}.cmphead{display:flex;justify-content:space-between;gap:16px;padding:16px 18px;border-bottom:1px solid #e5ebe8}.cmptitle{font-size:21px;font-weight:950;color:#062b22}.cmpsub{font-size:11px;color:#66756f;margin-top:3px}.cmpclose{width:36px;height:36px;border:0;border-radius:99px;background:#f1f5f3;font-size:21px;font-weight:900;cursor:pointer}.cmpcontrols{padding:12px 16px;background:#f8faf9;border-bottom:1px solid #e5ebe8}.cmpgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.cmpfield label{display:block;font-size:9px;font-weight:900;color:#5c6f68;text-transform:uppercase;margin-bottom:4px}.cmpfield select,.cmpfield input{margin:0!important;padding:9px!important;font-size:11px!important}.cmptabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:9px}.cmptab{margin:0!important;font-size:10px!important;font-weight:900!important;cursor:pointer}.cmptab.active{background:#062b22!important;color:#fff!important;border-color:#062b22!important}.cmpstatus{font-size:10px;color:#66756f;margin-top:8px}.cmpbody{flex:1;min-height:0;overflow:auto;padding:14px 16px;-webkit-overflow-scrolling:touch}.cmpsummary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}.cmpcard{border:1px solid #e3eae7;border-radius:14px;padding:12px;background:#fff}.cmpcard .n{font-size:13px;font-weight:900;color:#062b22}.cmpcard .v{font-size:26px;font-weight:950;margin-top:5px}.cmpcard .p{font-size:11px;color:#61716b;margin-top:2px}.cmpwinner{margin-top:7px;display:inline-flex;padding:4px 8px;border-radius:999px;background:#fff0e8;color:#d9470a;font-size:9px;font-weight:900}.cmptable{width:100%;border-collapse:collapse;font-size:11px}.cmptable th{position:sticky;top:0;background:#f8faf9;z-index:2;text-align:right;padding:9px 7px;border-bottom:1px solid #dfe7e4;color:#52645e}.cmptable th:first-child,.cmptable td:first-child{text-align:left}.cmptable td{padding:9px 7px;border-bottom:1px solid #edf1ef;text-align:right}.cmptable tr:hover td{background:#fbfcfb}.cmplead{font-weight:900;color:#062b22}.cmpmeta{display:block;font-size:9px;color:#788680;margin-top:2px}.cmpempty{padding:34px 12px;text-align:center;color:#6b7a75;font-size:12px}.cmpsearch{margin-top:8px!important}.cmpnote{padding:8px 16px;border-top:1px solid #e5ebe8;background:#fbfcfb;color:#70807a;font-size:9px;line-height:1.35}
-@media(max-width:850px){.cmpback{padding:0;align-items:stretch}.cmppanel{width:100%;height:100dvh;max-height:100dvh;border-radius:0}.cmpgrid{grid-template-columns:1fr}.cmptabs{grid-template-columns:repeat(2,1fr)}.cmpsummary{grid-template-columns:1fr}.cmpbody{padding:8px}.cmptable{font-size:9px}.cmptable th,.cmptable td{padding:7px 4px}.cmptitle{font-size:17px}}
-`;
-    document.head.appendChild(st);
-    document.body.insertAdjacentHTML('beforeend', `
-      <div class="cmpback" id="cmpBack">
-        <section class="cmppanel" role="dialog" aria-modal="true">
-          <div class="cmphead"><div><div class="cmptitle">Comparativo de candidatos</div><div class="cmpsub" id="cmpSub">Compare lado a lado por território.</div></div><button class="cmpclose" id="cmpClose">×</button></div>
-          <div class="cmpcontrols">
-            <div class="cmpgrid">
-              <div class="cmpfield"><label>Candidato 1</label><select id="cmpA"></select></div>
-              <div class="cmpfield"><label>Candidato 2</label><select id="cmpB"></select></div>
-              <div class="cmpfield"><label>Candidato 3 · opcional</label><select id="cmpC"></select></div>
-            </div>
-            <div class="cmptabs" id="cmpTabs">
-              <button class="cmptab" data-level="municipios">Municípios</button>
-              <button class="cmptab" data-level="bairro">Bairros</button>
-              <button class="cmptab" data-level="local">Locais</button>
-              <button class="cmptab" data-level="secao">Seções</button>
-            </div>
-            <input class="cmpsearch" id="cmpSearch" placeholder="Buscar território">
-            <div class="cmpstatus" id="cmpStatus"></div>
-          </div>
-          <div class="cmpbody" id="cmpBody"></div>
-          <div class="cmpnote">Bairro é o bairro do local de votação, não necessariamente o bairro de residência do eleitor. Dados agregados; o voto individual permanece secreto.</div>
-        </section>
-      </div>`);
-    document.getElementById('cmpClose').onclick = closeCompare;
-    document.getElementById('cmpBack').onclick = e => { if(e.target.id === 'cmpBack') closeCompare(); };
-    document.querySelectorAll('.cmptab').forEach(b => b.onclick = () => { cmpLevel = b.dataset.level; activateTabs(); renderCompare(); });
-    ['cmpA','cmpB','cmpC'].forEach(id => document.getElementById(id).onchange = renderCompare);
-    document.getElementById('cmpSearch').oninput = e => { cmpSearch = e.target.value || ''; renderCompare(); };
-  }
-
-  function fillCandidateSelects(){
-    const arr = candidates();
-    const opts = arr.map(c => `<option value="${esc(c.number)}">${esc(cLabel(c))}</option>`).join('');
-    const blank = '<option value="">— Não usar —</option>';
-    const a = document.getElementById('cmpA'), b = document.getElementById('cmpB'), c = document.getElementById('cmpC');
-    a.innerHTML = opts || '<option value="">Nenhum candidato carregado</option>';
-    b.innerHTML = blank + opts;
-    c.innerHTML = blank + opts;
-    const cur = (typeof current !== 'undefined' && current) ? String(current.number) : (arr[0] ? String(arr[0].number) : '');
-    if(cur) a.value = cur;
-    const second = arr.find(x => String(x.number) !== cur);
-    if(second) b.value = String(second.number);
-    c.value = '';
-  }
-
-  function activateTabs(){
-    document.querySelectorAll('.cmptab').forEach(b => b.classList.toggle('active', b.dataset.level === cmpLevel));
-  }
-
-  function openCompare(){
-    installUI();
-    const y = yearNow();
-    const m = currentMunicipio();
-    if(y === '2024' && !m){
-      alert('Em 2024, primeiro clique em um município no mapa. Depois abra o comparativo para comparar os candidatos desse município.');
-      return;
-    }
-    if(!candidates().length){
-      alert(y === '2024' ? 'Escolha um município e aguarde os candidatos carregarem.' : 'Aguarde a lista de candidatos carregar e escolha um cargo.');
-      return;
-    }
-    cmpLevel = y === '2024' ? 'bairro' : 'municipios';
-    cmpSearch = '';
-    fillCandidateSelects();
-    document.getElementById('cmpSearch').value = '';
-    document.getElementById('cmpSub').textContent = y === '2024'
-      ? `${m?.municipio || 'Município'} · Eleições Municipais 2024`
-      : `${typeof cfg === 'function' ? cfg().l : 'Cargo'} · Espírito Santo · 2026`;
-    document.querySelector('[data-level="municipios"]').disabled = y === '2024';
-    activateTabs();
-    document.getElementById('cmpBack').classList.add('show');
-    document.body.style.overflow = 'hidden';
-    renderCompare();
-  }
-
-  function closeCompare(){
-    document.getElementById('cmpBack')?.classList.remove('show');
-    document.body.style.overflow = '';
-  }
-
-  function chosen(){
-    return ['cmpA','cmpB','cmpC'].map(id => document.getElementById(id)?.value || '').filter(Boolean).map(n => candidates().find(c => String(c.number) === String(n))).filter(Boolean);
-  }
-
-  async function ensure2026Municipios(){
-    if(yearNow() !== '2026') return;
-    const missing = MUNICIPIOS.filter(m => !mun.has(m.tse));
-    if(!missing.length) return;
-    const st = document.getElementById('cmpStatus');
-    let done = 0;
-    const queue = [...missing];
-    async function worker(){
-      while(queue.length){
-        const m = queue.shift();
-        try{
-          const d = await get(munURL(m));
-          mun.set(m.tse, parseMun(d));
-        }catch(_e){}
-        done++;
-        if(st) st.textContent = `Carregando municípios para o comparativo: ${done}/${missing.length}`;
-      }
-    }
-    await Promise.all(Array.from({length:Math.min(8,missing.length)}, worker));
-  }
-
-  async function loadSectionData(m){
-    const y = yearNow();
-    const key = `${y}:${m.tse}`;
-    if(cmpSectionCache.has(key)) return cmpSectionCache.get(key);
-    const path = y === '2024' ? `data/2024/secoes/${m.tse}.json` : `data/secoes/${m.tse}.json`;
-    const r = await fetch(path,{cache:'force-cache'});
-    if(!r.ok) throw Error(r.status);
-    const d = await r.json();
-    cmpSectionCache.set(key,d);
-    return d;
-  }
-
-  function sectionRows(data,cand){
-    const ck = String(cargo);
-    const vm = pairMap(data?.vv?.[ck]);
-    const raw = data?.v?.[ck]?.[candidateKey(cand.number)] ?? data?.v?.[ck]?.[String(cand.number)] ?? [];
-    const cm = pairMap(raw);
-    return (data?.s || []).map((s,i) => ({
-      i,z:s.z || '',s:s.s || '',l:s.l || '',n:s.n || 'Local de votação',b:s.b || 'Bairro não informado',e:s.e || '',
-      vv:vm.get(i) || 0,v:cm.get(i) || 0
-    }));
-  }
-
-  function aggregateSection(data, cs, level){
-    const bases = cs.map(c => sectionRows(data,c));
-    const metaRows = bases[0] || [];
-    const out = new Map();
-    for(let i=0;i<metaRows.length;i++){
-      const r = metaRows[i];
-      let key,label,meta='';
-      if(level === 'bairro'){ key = norm(r.b); label = r.b; }
-      else if(level === 'local'){ key = `${r.z}|${r.l}|${norm(r.n)}`; label = r.n; meta = r.b; }
-      else { key = `${r.z}|${r.s}|${r.l}`; label = `Zona ${r.z} · Seção ${r.s}`; meta = `${r.n} · ${r.b}`; }
-      if(!out.has(key)) out.set(key,{key,label,meta,vv:0,vals:Array(cs.length).fill(0)});
-      const x = out.get(key);
-      x.vv += r.vv;
-      for(let j=0;j<cs.length;j++) x.vals[j] += bases[j]?.[i]?.v || 0;
-    }
-    return [...out.values()];
-  }
-
-  function summaryCards(cs, totals, valid){
-    const max = Math.max(...totals,0);
-    return `<div class="cmpsummary">${cs.map((c,i)=>`<div class="cmpcard"><div class="n">${esc(c.urna || c.official)}</div><div class="v">${fnum(totals[i])}</div><div class="p">${valid ? fpct(totals[i]/valid*100) : '—'}${c.party ? ' · '+esc(c.party) : ''}</div>${totals[i]===max && max>0 ? '<span class="cmpwinner">maior votação</span>' : ''}</div>`).join('')}</div>`;
-  }
-
-  function table(cs, rows, validByRow=false){
-    const q = norm(cmpSearch || '');
-    let arr = rows.filter(r => !q || norm(`${r.label} ${r.meta || ''}`).includes(q));
-    arr.sort((a,b) => Math.max(...b.vals)-Math.max(...a.vals));
-    arr = arr.slice(0,250);
-    const th = cs.map(c => `<th>${esc(c.urna || c.official)}</th>`).join('');
-    const body = arr.map(r => {
-      const max = Math.max(...r.vals);
-      return `<tr><td><span class="cmplead">${esc(r.label)}</span>${r.meta?`<span class="cmpmeta">${esc(r.meta)}</span>`:''}</td>${r.vals.map(v=>`<td class="${v===max&&max>0?'cmplead':''}">${fnum(v)}${validByRow&&r.vv?`<span class="cmpmeta">${fpct(v/r.vv*100)}</span>`:''}</td>`).join('')}</tr>`;
-    }).join('');
-    return `<table class="cmptable"><thead><tr><th>Território</th>${th}</tr></thead><tbody>${body || '<tr><td colspan="4">Nenhum território encontrado.</td></tr>'}</tbody></table>`;
-  }
-
-  async function renderCompare(){
-    const body = document.getElementById('cmpBody'), st = document.getElementById('cmpStatus');
-    if(!body) return;
-    const cs = chosen();
-    if(cs.length < 2){ body.innerHTML = '<div class="cmpempty">Escolha pelo menos dois candidatos.</div>'; return; }
-    body.innerHTML = '<div class="cmpempty">Calculando comparação…</div>';
-    try{
-      if(cmpLevel === 'municipios'){
-        if(yearNow() !== '2026'){ body.innerHTML = '<div class="cmpempty">A comparação por municípios está disponível nas eleições gerais de 2026. Em 2024, escolha um município e compare bairros, locais e seções.</div>'; return; }
-        await ensure2026Municipios();
-        const totals = cs.map(c => typeof totalES === 'function' ? totalES(c) : c.votes || 0);
-        const valid = typeof validES === 'function' ? validES() : 0;
-        const rs = MUNICIPIOS.map(m => {
-          const d = mun.get(m.tse); return {label:m.municipio,meta:'',vv:d?.valid||0,vals:cs.map(c => d?.cand?.get(String(c.number)) || 0)};
-        }).filter(r => r.vv || r.vals.some(Boolean));
-        body.innerHTML = summaryCards(cs,totals,valid) + table(cs,rs,true);
-        st.textContent = `${rs.length}/78 municípios com dados · ${cs.length} candidatos comparados`;
-        return;
-      }
-      const m = currentMunicipio();
-      if(!m){ body.innerHTML = '<div class="cmpempty">Clique primeiro em um município no mapa para comparar bairros, locais ou seções.</div>'; st.textContent=''; return; }
-      const data = await loadSectionData(m);
-      const all = aggregateSection(data,cs,cmpLevel);
-      const totals = cs.map((_c,i) => all.reduce((s,r)=>s+(r.vals[i]||0),0));
-      const valid = cmpLevel === 'secao'
-        ? all.reduce((s,r)=>s+(r.vv||0),0)
-        : (()=>{ const vm=pairMap(data?.vv?.[String(cargo)]); let s=0; for(const v of vm.values()) s+=v; return s; })();
-      body.innerHTML = summaryCards(cs,totals,valid) + table(cs,all,true);
-      st.textContent = `${m.municipio} · ${all.length} ${cmpLevel === 'bairro' ? 'bairros' : cmpLevel === 'local' ? 'locais' : 'seções'} · ${cs.length} candidatos`;
-    }catch(e){
-      body.innerHTML = `<div class="cmpempty"><b>Não foi possível montar o comparativo.</b><br><br>${esc(e?.message || e)}</div>`;
-      st.textContent = '';
-    }
-  }
-
-  installUI();
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installLauncher);
-  else installLauncher();
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fnum=n=>Number(n||0).toLocaleString('pt-BR');
+  const fpct=n=>Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+  const yearNow=()=>String(window.APP_ELECTION_YEAR||(new URL(location.href).searchParams.get('eleicao')==='2024'?'2024':'2026'));
+  let cmpSectionCache=new Map(),cmpLevel='municipios',cmpSearch='';
+  function currentMunicipio(){if(typeof selected==='undefined'||!selected)return null;return (typeof MUNICIPIOS!=='undefined'?MUNICIPIOS:[]).find(m=>m.norm===selected)||null}
+  function candidateKey(n){const s=String(n??'').replace(/\D/g,'');return s?String(Number(s)):''}
+  function pairMap(arr){const m=new Map();for(const p of arr||[])if(Array.isArray(p)&&p.length>1)m.set(Number(p[0]),Number(p[1]||0));return m}
+  function candidates(){return Array.isArray(cands)?cands:[]}
+  function cLabel(c){return `${c?.urna||c?.official||'Sem nome'} · Nº ${c?.number||''}${c?.party?' · '+c.party:''}`}
+  function installLauncher(){const panel=document.querySelector('.panel');if(!panel||document.getElementById('analysisTools'))return;const box=document.createElement('div');box.className='card';box.id='analysisTools';box.innerHTML=`<div class="label">Inteligência eleitoral</div><button class="btn toolbtn" id="openCompare">Comparar candidatos</button><a class="btn toolbtn secondary" href="historico.html">Histórico 2012–2026 · Brasil</a>`;const det=document.getElementById('det');if(det)panel.insertBefore(box,det);else panel.appendChild(box);document.getElementById('openCompare').onclick=openCompare}
+  function installUI(){if(document.getElementById('cmpBack'))return;const st=document.createElement('style');st.id='analysisToolsStyles';st.textContent=`.toolbtn{display:flex!important;align-items:center;justify-content:center;text-decoration:none;background:#062b22!important;color:#fff!important;border-color:#062b22!important;margin-top:7px!important}.toolbtn.secondary{background:#fff2eb!important;color:#d9470a!important;border-color:#ffd8c7!important}.cmpback{display:none;position:fixed;inset:0;z-index:390;background:rgba(3,24,19,.72);padding:2vh 2vw;align-items:center;justify-content:center}.cmpback.show{display:flex}.cmppanel{width:min(1260px,97vw);height:min(94vh,920px);background:#fff;border-radius:20px;box-shadow:0 22px 70px #0006;display:flex;flex-direction:column;overflow:hidden}.cmphead{display:flex;justify-content:space-between;gap:16px;padding:16px 18px;border-bottom:1px solid #e5ebe8}.cmptitle{font-size:21px;font-weight:950;color:#062b22}.cmpsub{font-size:11px;color:#66756f;margin-top:3px}.cmpclose{width:36px;height:36px;border:0;border-radius:99px;background:#f1f5f3;font-size:21px;font-weight:900;cursor:pointer}.cmpcontrols{padding:12px 16px;background:#f8faf9;border-bottom:1px solid #e5ebe8}.cmpgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.cmpfield label{display:block;font-size:9px;font-weight:900;color:#5c6f68;text-transform:uppercase;margin-bottom:4px}.cmpfield select,.cmpfield input{margin:0!important;padding:9px!important;font-size:11px!important}.cmptabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:9px}.cmptab{margin:0!important;font-size:10px!important;font-weight:900!important;cursor:pointer}.cmptab.active{background:#062b22!important;color:#fff!important;border-color:#062b22!important}.cmpstatus{font-size:10px;color:#66756f;margin-top:8px}.cmpbody{flex:1;min-height:0;overflow:auto;padding:14px 16px;-webkit-overflow-scrolling:touch}.cmpsummary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}.cmpcard{border:1px solid #e3eae7;border-radius:14px;padding:12px;background:#fff}.cmpcard .n{font-size:13px;font-weight:900;color:#062b22}.cmpcard .v{font-size:26px;font-weight:950;margin-top:5px}.cmpcard .p{font-size:11px;color:#61716b;margin-top:2px}.cmpwinner{margin-top:7px;display:inline-flex;padding:4px 8px;border-radius:999px;background:#fff0e8;color:#d9470a;font-size:9px;font-weight:900}.cmptable{width:100%;border-collapse:collapse;font-size:11px}.cmptable th{position:sticky;top:0;background:#f8faf9;z-index:2;text-align:right;padding:9px 7px;border-bottom:1px solid #dfe7e4;color:#52645e}.cmptable th:first-child,.cmptable td:first-child{text-align:left}.cmptable td{padding:9px 7px;border-bottom:1px solid #edf1ef;text-align:right}.cmptable tr:hover td{background:#fbfcfb}.cmplead{font-weight:900;color:#062b22}.cmpmeta{display:block;font-size:9px;color:#788680;margin-top:2px}.cmpempty{padding:34px 12px;text-align:center;color:#6b7a75;font-size:12px}.cmpsearch{margin-top:8px!important}.cmpnote{padding:8px 16px;border-top:1px solid #e5ebe8;background:#fbfcfb;color:#70807a;font-size:9px;line-height:1.35}@media(max-width:850px){.cmpback{padding:0;align-items:stretch}.cmppanel{width:100%;height:100dvh;max-height:100dvh;border-radius:0}.cmpgrid{grid-template-columns:1fr}.cmptabs{grid-template-columns:repeat(2,1fr)}.cmpsummary{grid-template-columns:1fr}.cmpbody{padding:8px}.cmptable{font-size:9px}.cmptable th,.cmptable td{padding:7px 4px}.cmptitle{font-size:17px}}`;document.head.appendChild(st);document.body.insertAdjacentHTML('beforeend',`<div class="cmpback" id="cmpBack"><section class="cmppanel" role="dialog" aria-modal="true"><div class="cmphead"><div><div class="cmptitle">Comparativo de candidatos</div><div class="cmpsub" id="cmpSub">Compare lado a lado por território.</div></div><button class="cmpclose" id="cmpClose">×</button></div><div class="cmpcontrols"><div class="cmpgrid"><div class="cmpfield"><label>Candidato 1</label><select id="cmpA"></select></div><div class="cmpfield"><label>Candidato 2</label><select id="cmpB"></select></div><div class="cmpfield"><label>Candidato 3 · opcional</label><select id="cmpC"></select></div></div><div class="cmptabs" id="cmpTabs"><button class="cmptab" data-level="municipios">Municípios</button><button class="cmptab" data-level="bairro">Bairros</button><button class="cmptab" data-level="local">Locais</button><button class="cmptab" data-level="secao">Seções</button></div><input class="cmpsearch" id="cmpSearch" placeholder="Buscar território"><div class="cmpstatus" id="cmpStatus"></div></div><div class="cmpbody" id="cmpBody"></div><div class="cmpnote">Bairro é o bairro do local de votação, não necessariamente o bairro de residência do eleitor. Dados agregados; o voto individual permanece secreto.</div></section></div>`);document.getElementById('cmpClose').onclick=closeCompare;document.getElementById('cmpBack').onclick=e=>{if(e.target.id==='cmpBack')closeCompare()};document.querySelectorAll('.cmptab').forEach(b=>b.onclick=()=>{cmpLevel=b.dataset.level;activateTabs();renderCompare()});['cmpA','cmpB','cmpC'].forEach(id=>document.getElementById(id).onchange=renderCompare);document.getElementById('cmpSearch').oninput=e=>{cmpSearch=e.target.value||'';renderCompare()}}
+  function fillCandidateSelects(){const arr=candidates(),opts=arr.map(c=>`<option value="${esc(c.number)}">${esc(cLabel(c))}</option>`).join(''),blank='<option value="">— Não usar —</option>';const a=document.getElementById('cmpA'),b=document.getElementById('cmpB'),c=document.getElementById('cmpC');a.innerHTML=opts||'<option value="">Nenhum candidato carregado</option>';b.innerHTML=blank+opts;c.innerHTML=blank+opts;const cur=(typeof current!=='undefined'&&current)?String(current.number):(arr[0]?String(arr[0].number):'');if(cur)a.value=cur;const second=arr.find(x=>String(x.number)!==cur);if(second)b.value=String(second.number);c.value=''}
+  function activateTabs(){document.querySelectorAll('.cmptab').forEach(b=>b.classList.toggle('active',b.dataset.level===cmpLevel))}
+  function openCompare(){installUI();const y=yearNow(),m=currentMunicipio();if(y==='2024'&&!m){alert('Em 2024, primeiro clique em um município no mapa. Depois abra o comparativo.');return}if(!candidates().length){alert(y==='2024'?'Escolha um município e aguarde os candidatos carregarem.':'Aguarde a lista de candidatos carregar.');return}cmpLevel=y==='2024'?'bairro':'municipios';cmpSearch='';fillCandidateSelects();document.getElementById('cmpSearch').value='';document.getElementById('cmpSub').textContent=y==='2024'?`${m?.municipio||'Município'} · Eleições Municipais 2024`:`${typeof cfg==='function'?cfg().l:'Cargo'} · Espírito Santo · 2026`;document.querySelector('[data-level="municipios"]').disabled=y==='2024';activateTabs();document.getElementById('cmpBack').classList.add('show');document.body.style.overflow='hidden';renderCompare()}
+  function closeCompare(){document.getElementById('cmpBack')?.classList.remove('show');document.body.style.overflow=''}
+  function chosen(){return ['cmpA','cmpB','cmpC'].map(id=>document.getElementById(id)?.value||'').filter(Boolean).map(n=>candidates().find(c=>String(c.number)===String(n))).filter(Boolean)}
+  async function ensure2026Municipios(){if(yearNow()!=='2026')return;const missing=MUNICIPIOS.filter(m=>!mun.has(m.tse));if(!missing.length)return;const st=document.getElementById('cmpStatus');let done=0,queue=[...missing];async function worker(){while(queue.length){const m=queue.shift();try{const d=await get(munURL(m));mun.set(m.tse,parseMun(d))}catch(_e){}done++;if(st)st.textContent=`Carregando municípios para o comparativo: ${done}/${missing.length}`}}await Promise.all(Array.from({length:Math.min(8,missing.length)},worker))}
+  async function loadSectionData(m){const y=yearNow();const turn=y==='2024'?(document.getElementById('m24Turno')?.value||'1'):'1';const key=`${y}:${turn}:${m.tse}`;if(cmpSectionCache.has(key))return cmpSectionCache.get(key);const path=y==='2024'?`data/2024/secoes/${turn}/${m.tse}.json`:`data/secoes/${m.tse}.json`;const r=await fetch(`${path}?v=20261008c`,{cache:'force-cache'});if(!r.ok){if(y==='2024'&&turn==='2'&&r.status===404)throw Error('Este município não teve 2º turno ou não há base de seções do 2º turno.');throw Error(`Base de seções não encontrada (${r.status}).`)}const d=await r.json();cmpSectionCache.set(key,d);return d}
+  function sectionRows(data,cand){const ck=String(cargo),vm=pairMap(data?.vv?.[ck]);const raw=data?.v?.[ck]?.[candidateKey(cand.number)]??data?.v?.[ck]?.[String(cand.number)]??[],cm=pairMap(raw);return(data?.s||[]).map((s,i)=>({i,z:s.z||'',s:s.s||'',l:s.l||'',n:s.n||'Local de votação',b:s.b||'Bairro não informado',e:s.e||'',vv:vm.get(i)||0,v:cm.get(i)||0}))}
+  function aggregateSection(data,cs,level){const bases=cs.map(c=>sectionRows(data,c)),metaRows=bases[0]||[],out=new Map();for(let i=0;i<metaRows.length;i++){const r=metaRows[i];let key,label,meta='';if(level==='bairro'){key=norm(r.b);label=r.b}else if(level==='local'){key=`${r.z}|${r.l}|${norm(r.n)}`;label=r.n;meta=r.b}else{key=`${r.z}|${r.s}|${r.l}`;label=`Zona ${r.z} · Seção ${r.s}`;meta=`${r.n} · ${r.b}`}if(!out.has(key))out.set(key,{key,label,meta,vv:0,vals:Array(cs.length).fill(0)});const x=out.get(key);x.vv+=r.vv;for(let j=0;j<cs.length;j++)x.vals[j]+=bases[j]?.[i]?.v||0}return[...out.values()]}
+  function summaryCards(cs,totals,valid){const max=Math.max(...totals,0);return`<div class="cmpsummary">${cs.map((c,i)=>`<div class="cmpcard"><div class="n">${esc(c.urna||c.official)}</div><div class="v">${fnum(totals[i])}</div><div class="p">${valid?fpct(totals[i]/valid*100):'—'}${c.party?' · '+esc(c.party):''}</div>${totals[i]===max&&max>0?'<span class="cmpwinner">maior votação</span>':''}</div>`).join('')}</div>`}
+  function table(cs,rows,validByRow=false){const q=norm(cmpSearch||'');let arr=rows.filter(r=>!q||norm(`${r.label} ${r.meta||''}`).includes(q));arr.sort((a,b)=>Math.max(...b.vals)-Math.max(...a.vals));arr=arr.slice(0,250);const th=cs.map(c=>`<th>${esc(c.urna||c.official)}</th>`).join(''),body=arr.map(r=>{const max=Math.max(...r.vals);return`<tr><td><span class="cmplead">${esc(r.label)}</span>${r.meta?`<span class="cmpmeta">${esc(r.meta)}</span>`:''}</td>${r.vals.map(v=>`<td class="${v===max&&max>0?'cmplead':''}">${fnum(v)}${validByRow&&r.vv?`<span class="cmpmeta">${fpct(v/r.vv*100)}</span>`:''}</td>`).join('')}</tr>`}).join('');return`<table class="cmptable"><thead><tr><th>Território</th>${th}</tr></thead><tbody>${body||'<tr><td colspan="4">Nenhum território encontrado.</td></tr>'}</tbody></table>`}
+  async function renderCompare(){const body=document.getElementById('cmpBody'),st=document.getElementById('cmpStatus');if(!body)return;const cs=chosen();if(cs.length<2){body.innerHTML='<div class="cmpempty">Escolha pelo menos dois candidatos.</div>';return}body.innerHTML='<div class="cmpempty">Calculando comparação…</div>';try{if(cmpLevel==='municipios'){if(yearNow()!=='2026'){body.innerHTML='<div class="cmpempty">Em 2024, compare bairros, locais e seções dentro do município escolhido.</div>';return}await ensure2026Municipios();const totals=cs.map(c=>typeof totalES==='function'?totalES(c):c.votes||0),valid=typeof validES==='function'?validES():0,rs=MUNICIPIOS.map(m=>{const d=mun.get(m.tse);return{label:m.municipio,meta:'',vv:d?.valid||0,vals:cs.map(c=>d?.cand?.get(String(c.number))||0)}}).filter(r=>r.vv||r.vals.some(Boolean));body.innerHTML=summaryCards(cs,totals,valid)+table(cs,rs,true);st.textContent=`${rs.length}/78 municípios com dados · ${cs.length} candidatos comparados`;return}const m=currentMunicipio();if(!m){body.innerHTML='<div class="cmpempty">Clique primeiro em um município no mapa.</div>';st.textContent='';return}const data=await loadSectionData(m),all=aggregateSection(data,cs,cmpLevel),totals=cs.map((_c,i)=>all.reduce((s,r)=>s+(r.vals[i]||0),0)),vm=pairMap(data?.vv?.[String(cargo)]);let valid=0;for(const v of vm.values())valid+=v;body.innerHTML=summaryCards(cs,totals,valid)+table(cs,all,true);st.textContent=`${m.municipio} · ${all.length} ${cmpLevel==='bairro'?'bairros':cmpLevel==='local'?'locais':'seções'} · ${cs.length} candidatos`}catch(e){body.innerHTML=`<div class="cmpempty"><b>Não foi possível montar o comparativo.</b><br><br>${esc(e?.message||e)}</div>`;st.textContent=''}}
+  installUI();if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installLauncher);else installLauncher();
 })();
